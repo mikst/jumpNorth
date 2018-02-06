@@ -11,12 +11,13 @@
 #include <EEPROM.h>
 
 /* pinouts
+ *  14 is placed on the Center Back of the suit.
  * 17 is placed on the back closest to the compus
- * calibrated as you stand facing South (17 facing the North)
-S ---|3 14|--- SW
-SE---|2 15|--- W
-E ---|1 16|--- NW
-NE---|0 17|--- N
+ * calibrated as you stand facing South (14 facing the North)
+LB---|3 14|--- CB
+L ---|2 15|--- RB
+LF---|1 16|--- R
+CF---|0 17|--- RF
         18|--- SDA
 Btn-|11 19|--- SCL
 ---|VCC VCC|---
@@ -33,7 +34,8 @@ int VIBE_COUNT = 8;
 int SMOOTHING_DEGREES = 5;
 int LED_PIN = 13;
 
-int motorPin[] = { 0, 1, 2, 3, 14, 15, 16,17};
+
+int motorPin[] = { 0, 1, 2, 3, 14, 15, 16, 17};
 
 int EEPROM_CALIBRATED_ADDR = 0;
 int EEPROM_CALIBRATION_VECTOR_ADDR = 1;
@@ -52,6 +54,9 @@ float heading = 0.0;
 float lastVibratedHeading = 180.0;
 
 int deviceStatus;
+bool northbelt;
+unsigned long currentMillis;
+unsigned long previousMillis = 0;
 
 
 void dumpCalibrationData() {
@@ -195,7 +200,7 @@ void setup() {
   } else {
     readCalibrationData();
   }
-
+delay(10);
   compass.m_min = running_min;
   compass.m_max = running_max;
 
@@ -208,7 +213,7 @@ Serial.println("start");
     for (int i = 0; i < VIBE_COUNT; i++) {
     digitalWrite(motorPin[i], HIGH);
     Serial.print(i);
-    delay(1000);
+    delay(500);
     digitalWrite(motorPin[i], LOW);
   }
 Serial.println("done");
@@ -216,6 +221,8 @@ Serial.println("done");
 deviceStatus=compass.getDeviceType();
 Serial.print("deviceStatus : ");
   Serial.println(deviceStatus);
+
+  
 }
 
 void maybeVibrateHeading() {
@@ -234,20 +241,19 @@ void maybeVibrateHeading() {
     wedge = wedge / (360 / VIBE_COUNT); // deciding motor number
     
 
-    if (DEBUG) {
-      Serial.print("  :  ");
-      Serial.print(wedge);
-    }
+
     
   // starts new motor only when the direction has changed
     if (currentVibePin!= wedge){
+          if (DEBUG) {
+      Serial.print("  :  ");
+      Serial.print(wedge);
+    }
     digitalWrite(motorPin[currentVibePin], LOW);
     digitalWrite(motorPin[wedge], HIGH);
-    if (DEBUG) {
-    Serial.print("  :onononon");
-    }
+   
     currentVibePin = wedge;
-    vibrateCycles = 16;
+    vibrateCycles = 24;
     }
     
   }
@@ -260,8 +266,8 @@ void vibrateClock() {
       digitalWrite(motorPin[currentVibePin], LOW);
     }
     if (DEBUG) {
-    Serial.print("  : ");
-    Serial.print(vibrateCycles);
+    Serial.print(" currentVibePin : ");
+    Serial.print(currentVibePin);
     }
   }
 }
@@ -293,9 +299,23 @@ void loop() {
      => use the +Z axis as a reference (points directly through the PCB from
      silkscreened side to populated side).
   */
-  heading = compass.heading((LSM303::vector<int>){0, 0, 1});
+
+int ac=compass.a.x;
+currentMillis = millis();
+if (ac>0 && !northbelt){
+  northbelt=true;
+  previousMillis = currentMillis;
+}
+
+if (currentMillis - previousMillis> 10000){
+  northbelt=false;
+}
+
+  if (northbelt){
+  heading = compass.heading((LSM303::vector<int>){1, 0, 0});
   maybeVibrateHeading();
   vibrateClock();
+  }
 
   delay(50);
   }
