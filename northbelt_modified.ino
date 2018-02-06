@@ -51,6 +51,8 @@ int vibrateCycles = 0;
 float heading = 0.0;
 float lastVibratedHeading = 180.0;
 
+int deviceStatus;
+
 
 void dumpCalibrationData() {
   Serial.print("calibration data: ");
@@ -175,6 +177,7 @@ void setup() {
   Wire.begin();
   compass.init();
   compass.enableDefault();
+  
 
   // set calibration button as input and enable pull up resister
   pinMode(calibrationButton, INPUT_PULLUP);
@@ -182,10 +185,12 @@ void setup() {
   // set all the motor pin to be output
   for (int i = 0; i < VIBE_COUNT; i++) {
     pinMode(motorPin[i], OUTPUT);
+    digitalWrite(motorPin[i], LOW);
   }
 
   // indicator LED to be output
   pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   // if the device is not calibrated, run the calibration sequence
   if (!isCalibrated()) {
@@ -197,6 +202,10 @@ void setup() {
 
   compass.m_min = running_min;
   compass.m_max = running_max;
+
+deviceStatus=compass.getDeviceType();
+Serial.print("deviceStatus : ");
+  Serial.println(deviceStatus);
 }
 
 void maybeVibrateHeading() {
@@ -249,6 +258,8 @@ void vibrateClock() {
 
 void loop() {
 
+  if (deviceStatus<4){
+
   // check the calibration initiation button
   //----------------------------------------
   lastcal = cal;
@@ -277,4 +288,5 @@ void loop() {
   vibrateClock();
 
   delay(50);
+  }
 }
