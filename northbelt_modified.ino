@@ -182,11 +182,7 @@ void setup() {
   // set calibration button as input and enable pull up resister
   pinMode(calibrationButton, INPUT_PULLUP);
 
-  // set all the motor pin to be output
-  for (int i = 0; i < VIBE_COUNT; i++) {
-    pinMode(motorPin[i], OUTPUT);
-    digitalWrite(motorPin[i], LOW);
-  }
+
 
   // indicator LED to be output
   pinMode(LED_PIN, OUTPUT);
@@ -202,6 +198,20 @@ void setup() {
 
   compass.m_min = running_min;
   compass.m_max = running_max;
+
+Serial.println("start");
+    // set all the motor pin to be output
+  for (int i = 0; i < VIBE_COUNT; i++) {
+    pinMode(motorPin[i], OUTPUT);
+    digitalWrite(motorPin[i], LOW);
+  }
+    for (int i = 0; i < VIBE_COUNT; i++) {
+    digitalWrite(motorPin[i], HIGH);
+    Serial.print(i);
+    delay(1000);
+    digitalWrite(motorPin[i], LOW);
+  }
+Serial.println("done");
 
 deviceStatus=compass.getDeviceType();
 Serial.print("deviceStatus : ");
