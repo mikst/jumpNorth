@@ -11,6 +11,8 @@
 #include <EEPROM.h>
 
 /* pinouts
+ * 17 is placed on the back closest to the compus
+ * calibrated as you stand facing South (17 facing the North)
 S ---|3 14|--- SW
 SE---|2 15|--- W
 E ---|1 16|--- NW
